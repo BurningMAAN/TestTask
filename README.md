@@ -9,3 +9,6 @@ On your terminal, run:
 <b>php artisan key:generate</b>
 <br>
 <b>php artisan serve</b>
+<br><br><br>
+
+<b>ADD CATS.TXT FILE TO STORAGE/APP<b>
