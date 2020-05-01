@@ -22,15 +22,15 @@ class DashboardController extends Controller
                 $toCache = Cache::put('cats' . $ID, $uniqueCats, 60);
                 $quickHelper = array($catsList[$uniqueCats[0]], $catsList[$uniqueCats[1]], $catsList[$uniqueCats[2]]);
                 $this->writeHistory($ID, $quickHelper, $countAll, $countN);
-                return $catsList[$uniqueCats[0]] . ', ' . $catsList[$uniqueCats[1]] . ', ' . $catsList[$uniqueCats[2]];
             }
 
 
             else{
                 $quickHelper = array($catsList[$retrieved[0]], $catsList[$retrieved[1]], $catsList[$retrieved[2]]);
                 $this->writeHistory($ID, $quickHelper, $countAll, $countN);
-                return $catsList[$retrieved[0]] . ', ' . $catsList[$retrieved[1]] . ', ' . $catsList[$retrieved[2]];
             }
+
+            return $quickHelper[0] . ', ' . $quickHelper[1] . ' ,' . $quickHelper[2];
 
 
         }
