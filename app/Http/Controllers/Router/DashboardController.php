@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Router;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Controllers\Classes\Cats;
 
 class DashboardController extends Controller
 {
@@ -12,26 +13,22 @@ class DashboardController extends Controller
     {
         if(is_numeric($ID) == true &&  $ID >= 1 && $ID <= 1000000){
 
-            $countAll = $this->countAll();
+            $magicArray = array();
+            $countAll = $this->CountAll();
             $countN = $this->CountN($ID);
-  
-            $retrieved = Cache::get('cats' . $ID);
-            $catsList = $this->getCatsBreeds();
-            if(!$retrieved){
-                $uniqueCats = $this->getCatsForPage($catsList);
-                $toCache = Cache::put('cats' . $ID, $uniqueCats, 60);
-                $quickHelper = array($catsList[$uniqueCats[0]], $catsList[$uniqueCats[1]], $catsList[$uniqueCats[2]]);
-                $this->writeHistory($ID, $quickHelper, $countAll, $countN);
+            $isCached = $this->isCached($ID);
+
+            if(!$isCached){
+                $catsObject = new Cats($ID);
+                $this->cachePage($ID, $catsObject->catsArray, 60);
+                $magicArray = $catsObject->catsArray;
+                $this->writeHistory($ID, $catsObject->catsArray, $countAll, $countN);
             }
-
-
             else{
-                $quickHelper = array($catsList[$retrieved[0]], $catsList[$retrieved[1]], $catsList[$retrieved[2]]);
-                $this->writeHistory($ID, $quickHelper, $countAll, $countN);
+                $magicArray = $isCached;
+                $this->writeHistory($ID, $isCached, $countAll, $countN);
             }
-
-            return $quickHelper[0] . ', ' . $quickHelper[1] . ' ,' . $quickHelper[2];
-
+            return $this->outputText($magicArray);
 
         }
         else{
@@ -39,31 +36,29 @@ class DashboardController extends Controller
         }
     }
 
-    public function getCatsBreeds(){
-        $catsArray = array();
-        $catsShelterFile = storage_path('app/cats.txt');
-        $file = fopen($catsShelterFile, "r");
-
-        while(!feof($file)){
-            $catsArray[] = fgets($file);
+    public function isCached($ID){
+        $isCached = Cache::get('cats' . $ID);
+        if($isCached){
+            return $isCached;
         }
-        fclose($file);
-        return $catsArray;
-    } 
-
-    public function getCatsForPage($catsArray){
-        $test = $this->randomizeCats($catsArray);
-        return $test;
+        else{
+            return false;
+        }
     }
 
-    public function randomizeCats($catsArray){
-        $minCatID = 0;
-        $maxCatID = sizeof($catsArray);
-
-        $numbers = range($minCatID, $maxCatID);
-        shuffle($numbers);
-        return array_slice($numbers, 0, 3);
+    public function outputText($array){
+        return $array[0] . ', ' . $array[1] . ', ' . $array[2];
     }
+
+    public function cachePage($ID, $catsArray, $time){
+        if(!$this->isCached($ID)){ //PATIKRINAM AR TIKRAI NEUZCASHINTA
+            return Cache::put('cats' . $ID, $catsArray, $time);
+        }
+        else{
+            return 0;
+        }
+    }
+
 
     public function CountN($ID){
         if(Cache::has('count' . $ID)){
